@@ -3,6 +3,7 @@ import signal
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
 from werkzeug.utils import secure_filename
 from fpdf import FPDF  # PDF 생성을 위한 라이브러리 추가
+from PIL import Image, ExifTags
 
 app = Flask(__name__)
 
@@ -46,13 +47,31 @@ def delete_image():
 @app.route('/create_pdf', methods=['POST'])
 def create_pdf():
     image_filenames = request.json.get('filenames')
-    pdf = FPDF()
+    
+    # Letter 크기: 8.5 x 11 인치 (단위: mm로 변환하면 215.9 x 279.4 mm)
+    page_width, page_height = 215.9, 279.4
+    pdf = FPDF(format = 'letter')
     pdf.set_auto_page_break(0)
+    total_images = len(image_filenames)
 
-    for filename in image_filenames:
+    for index, filename in enumerate(image_filenames):
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        pdf.add_page()
-        pdf.image(file_path, x=10, y=10, w=190)  # 이미지 크기와 위치 조정 가능
+
+ 
+        with Image.open(file_path) as img:
+                    
+            img_width, img_height = img.size
+            img_width_mm = img_width * 0.264583  # 픽셀을 mm로 변환
+            img_height_mm = img_height * 0.264583
+
+            # 이미지가 페이지 크기를 초과할 경우 비율에 맞춰 조정
+            if img_width_mm > page_width or img_height_mm > page_height:
+                scale = min(page_width / img_width_mm, page_height / img_height_mm)
+                img_width_mm *= scale
+                img_height_mm *= scale
+
+            pdf.add_page(format = 'letter')
+            pdf.image(file_path, x=0, y=0, w=img_width_mm, h=img_height_mm)
 
     pdf.output(PREVIEW_PDF_PATH)
     return jsonify({"pdf_url": url_for('preview_pdf')})
@@ -69,7 +88,6 @@ def delete_preview():
         os.remove(PREVIEW_PDF_PATH)
         return jsonify(success=True)
     return jsonify(success=False)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
