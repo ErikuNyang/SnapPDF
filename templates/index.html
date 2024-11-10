@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapPDF - Arrange Images</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <style>
+        /* 이미지 컨테이너를 가로로 나열되도록 설정 */
+        #image-preview {
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+        
+        /* 이미지 아이템 스타일 */
+        .image-item {
+            display: inline-block;
+            position: relative;
+            text-align: center;
+        }
+
+        /* 이미지 및 삭제 버튼 스타일 */
+        .image-item img {
+            max-width: 100px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+        }
+        
+        .image-item button {
+            display: block;
+            margin-top: 5px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .image-item button:hover {
+            background-color: #ff1a1a;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload, Arrange, and Create PDF</h1>
+    <form action="/" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" multiple>
+        <button type="submit">Upload</button>
+    </form>
+    
+    <!-- 가로로 나열되는 이미지 프리뷰 컨테이너 -->
+    <div id="image-preview">
+        {% for filename in os.listdir(config['UPLOAD_FOLDER']) %}
+            <div class="image-item" data-filename="{{ filename }}">
+                <img src="{{ url_for('static', filename='uploads/' + filename) }}" width="100">
+                <button onclick="deleteImage('{{ filename }}')">Delete</button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <button onclick="createPDF()">Create PDF</button>
+    <button onclick="deletePreview()">Delete Preview PDF</button>
+
+    <script>
+        new Sortable(document.getElementById('image-preview'), { animation: 150 });
+
+        function deleteImage(filename) {
+            fetch('/delete_image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `filename=${filename}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelector(`[data-filename="${filename}"]`).remove();
+                } else {
+                    alert("Failed to delete image.");
+                }
+            });
+        }
+
+        function createPDF() {
+            const filenames = Array.from(document.querySelectorAll('.image-item')).map(item => item.dataset.filename);
+
+            fetch('/create_pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filenames: filenames })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.pdf_url) {
+                    window.open(data.pdf_url, '_blank');
+                } else {
+                    alert("Failed to create PDF.");
+                }
+            });
+        }
+
+        function deletePreview() {
+            fetch('/delete_preview', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Preview PDF deleted.");
+                } else {
+                    alert("Failed to delete preview PDF.");
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>

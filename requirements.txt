@@ -1,0 +1,4 @@
+flask
+pillow
+fpdf2
+sortablejs
