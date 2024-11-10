@@ -17,11 +17,11 @@ def create_virtualenv():
 def install_requirements():
     """requirements.txt 파일을 읽고 필요한 라이브러리를 설치합니다."""
     # pip 업그레이드
-    subprocess.check_call([os.path.join(VENV_DIR, 'Scripts', 'pip'), 'install', '--upgrade', 'pip'])
+    subprocess.check_call([os.path.join(VENV_DIR, 'Scripts', 'python'), '-m', 'pip', 'install', '--upgrade', 'pip'])
 
     # requirements.txt 파일이 있는지 확인하고, 라이브러리 설치
     if os.path.exists('requirements.txt'):
-        subprocess.check_call([os.path.join(VENV_DIR, 'Scripts', 'pip'), 'install', '-r', 'requirements.txt'])
+        subprocess.check_call([os.path.join(VENV_DIR, 'Scripts', 'python'), '-m', 'pip', 'install', '-r', 'requirements.txt'])
         print("All required libraries have been installed.")
     else:
         print("requirements.txt file not found. Please create one with the required libraries.")
