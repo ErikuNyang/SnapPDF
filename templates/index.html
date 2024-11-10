@@ -6,7 +6,7 @@
     <title>SnapPDF - Arrange Images</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     <style>
-        /* 이미지 컨테이너를 가로로 나열되도록 설정 */
+        /* Set the image container to display horizontally */
         #image-preview {
             display: flex;
             gap: 10px;
@@ -15,14 +15,14 @@
             padding: 10px 0;
         }
         
-        /* 이미지 아이템 스타일 */
+        /* Styles for image items */
         .image-item {
             display: inline-block;
             position: relative;
             text-align: center;
         }
 
-        /* 이미지 및 삭제 버튼 스타일 */
+        /* Image and delete button styles */
         .image-item img {
             max-width: 100px;
             border: 1px solid #ddd;
@@ -53,7 +53,7 @@
         <button type="submit">Upload</button>
     </form>
     
-    <!-- 가로로 나열되는 이미지 프리뷰 컨테이너 -->
+    <!-- Horizontal image preview container -->
     <div id="image-preview">
         {% for filename in os.listdir(config['UPLOAD_FOLDER']) %}
             <div class="image-item" data-filename="{{ filename }}">
